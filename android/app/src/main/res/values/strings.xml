@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">AegisShield</string>
+    <string name="shield_active">PROTECTION ACTIVE</string>
+    <string name="shield_disconnected">HOST DISCONNECTED</string>
+    <string name="block_button">BLOCK APP IMMEDIATELY</string>
+    <string name="dismiss_button">DISMISS / ALLOW</string>
+</resources>

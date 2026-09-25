@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AegisShield | Mobile Security &amp; Live Sensor Guardian</title>
+  
+  <!-- Standalone App (PWA) Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AegisShield">
+  <meta name="theme-color" content="#07090E">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=9">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Dynamic Floating Heads-Up Screen Popup for Phone & Browser -->
+    <aside id="dynamicFloatingPopup" class="dynamic-floating-popup" role="status" aria-live="assertive">
+      <div class="popup-inner">
+        <div class="popup-icon-slot" id="popupIconSlot">📸</div>
+        <div class="popup-text-content">
+          <div class="popup-header-row">
+            <span class="popup-title" id="popupTitle">Live Sensor Access</span>
+            <span class="popup-time" id="popupTime">Just now</span>
+          </div>
+          <div class="popup-body" id="popupBody">Sensor active</div>
+        </div>
+        <button class="popup-close-btn" id="popupCloseBtn" aria-label="Close notification">✕</button>
+      </div>
+    </aside>
+
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-shield-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>AEGIS<span>SHIELD</span></h1>
+          <p class="subtitle">LIVE PHONE PERMISSION &amp; SENSOR GUARD</p>
+        </div>
+      </div>
+      <div class="header-right-tools">
+        <button class="popup-toggle-btn active" id="btnPopupToggle" onclick="handlePopupToggleClick(event)" title="Toggle instant phone screen pop-up alerts">
+          <span class="popup-icon" id="popupToggleIcon">🔔</span>
+          <span class="popup-label" id="popupToggleLabel">POPUP ON</span>
+        </button>
+        <button class="voice-toggle-btn" id="btnVoiceToggle" title="Toggle voice alerts">
+          <span class="voice-icon" id="voiceIcon">🔊</span>
+          <span class="voice-label" id="voiceLabel">VOICE ON</span>
+        </button>
+        <div class="connection-status-pill online" id="hostStatusPill">
+          <span class="status-dot"></span>
+          <span class="status-label" id="hostStatusLabel">SHIELD ACTIVE</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- PWA Install Banner -->
+    <div class="pwa-install-banner" id="pwaInstallBanner">
+      <div class="pwa-banner-left">
+        <span class="pwa-icon">📲</span>
+        <div class="pwa-text">
+          <strong>Run as Standalone Mobile App</strong>
+          <span>Install to Home Screen for fullscreen mode without browser URL bars</span>
+        </div>
+      </div>
+      <button class="pwa-install-btn" id="btnInstallPwa">INSTALL</button>
+      <button class="pwa-dismiss-btn" id="btnDismissPwa">&times;</button>
+    </div>
+
+    <!-- Live Currently Accessing Data/Camera/Photos Callout Banner -->
+    <div class="sensor-announcement-bar" id="sensorAnnouncementBar">
+      <div class="announcement-pulse-dot" id="announceDot"></div>
+      <div class="announcement-content">
+        <strong id="announceTitle">LIVE SENSOR ACCESS</strong>
+        <span id="announceMessage">All sensors secured. Real-time telemetry monitoring active.</span>
+      </div>
+      <button class="announcement-action-btn" id="btnAnnounceAction">ASK AI</button>
+    </div>
+
+    <!-- Connected Device Status Banner -->
+    <div class="device-banner" id="deviceBanner">
+      <div class="device-banner-left">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="7" y="2" width="10" height="20" rx="2" ry="2"/>
+          <line x1="11" y1="18" x2="13" y2="18"/>
+        </svg>
+        <div class="device-info">
+          <span class="device-title" id="deviceTitle">Samsung Galaxy S24 [RZCY82GLPBA]</span>
+          <span class="device-detail" id="deviceDetail">🟢 Live Hardware Bridge Active (USB / LAN)</span>
+        </div>
+      </div>
+      <button class="device-help-btn" id="deviceHelpBtn" title="Device connection information">
+        <span>Active</span>
+      </button>
+    </div>
+
+    <!-- Permanent Instant Phone Pop-up Alert Banner -->
+    <div class="notif-setup-banner" id="notifSetupBanner" style="margin: 0 16px 14px 16px; background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.35); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 180px;">
+        <span style="font-size: 1.3rem;">🔔</span>
+        <div style="min-width: 0;">
+          <strong style="display: block; font-size: 0.82rem; color: #fff; margin-bottom: 2px;">Instant Phone Pop-up Alerts</strong>
+          <span id="popupBannerSubtext" style="display: block; font-size: 0.72rem; color: var(--neon-cyan); line-height: 1.3;">🟢 Active • Real-time alerts pop up over apps</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
+        <button id="btnEnableBrowserNotifs" onclick="handleAllowPopupsClick(event)" style="background: var(--neon-cyan); color: #000; border: none; border-radius: 8px; padding: 8px 12px; font-size: 0.74rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: transform 0.15s ease;">⚡ TEST POPUP</button>
+        <button id="btnOpenPhoneNotifSettings" onclick="handleOpenPhoneSettingsClick(event)" title="Configure Phone Pop-up Banner in Android Settings" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 8px 10px; font-size: 0.74rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">⚙️ PHONE</button>
+      </div>
+    </div>
+
+    <!-- Main Content Area with 3 Sections -->
+    <main class="main-content">
+      
+      <!-- ========================================================
+           SECTION 1: LIVE MONITORING & CURRENT ACCESS
+           ======================================================== -->
+      <section class="tab-view active" id="viewLiveMonitor">
+        <div class="section-hero-header">
+          <div>
+            <h2>LIVE SENSOR &amp; DATA ACCESS MONITOR</h2>
+            <p>Real-time detection when apps access your Camera, Microphone, Photos &amp; Videos, or Background Data.</p>
+          </div>
+          <span class="live-pulse-badge">🔴 LIVE MONITORING</span>
+        </div>
+
+        <!-- Sensor Status Cards Grid -->
+        <div class="sensors-grid">
+          <!-- Camera Sensor Card -->
+          <div class="sensor-card" id="cardCamera">
+            <div class="sensor-card-top">
+              <div class="sensor-icon-box cam">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </div>
+              <span class="sensor-state-pill idle" id="camBadge">IDLE</span>
+            </div>
+            <div class="sensor-card-body">
+              <div class="sensor-app-identity-row">
+                <div class="sensor-app-badge-slot" id="camAppBadgeSlot"></div>
+                <div class="sensor-app-text-slot">
+                  <span class="sensor-label">CAMERA SENSOR</span>
+                  <strong class="sensor-app-name" id="camAppName">No active camera access</strong>
+                  <span class="sensor-timestamp" id="camTimestamp">Hardware camera idle</span>
+                </div>
+              </div>
+            </div>
+            <div class="sensor-card-footer">
+              <span class="footer-note" id="camFooterNote">Aegis active monitor</span>
+              <button class="sensor-quick-btn" id="btnBlockCamQuick" data-pkg="" data-sensor="CAMERA">Check</button>
+            </div>
+          </div>
+
+          <!-- Microphone Sensor Card -->
+          <div class="sensor-card" id="cardMic">
+            <div class="sensor-card-top">
+              <div class="sensor-icon-box mic">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+              </div>
+              <span class="sensor-state-pill idle" id="micBadge">IDLE</span>
+            </div>
+            <div class="sensor-card-body">
+              <div class="sensor-app-identity-row">
+                <div class="sensor-app-badge-slot" id="micAppBadgeSlot"></div>
+                <div class="sensor-app-text-slot">
+                  <span class="sensor-label">MICROPHONE SENSOR</span>
+                  <strong class="sensor-app-name" id="micAppName">No active microphone access</strong>
+                  <span class="sensor-timestamp" id="micTimestamp">Audio stream secured</span>
+                </div>
+              </div>
+            </div>
+            <div class="sensor-card-footer">
+              <span class="footer-note" id="micFooterNote">Aegis active monitor</span>
+              <button class="sensor-quick-btn" id="btnBlockMicQuick" data-pkg="" data-sensor="MICROPHONE">Check</button>
+            </div>
+          </div>
+
+          <!-- Photos & Videos / Media Card -->
+          <div class="sensor-card" id="cardPhotos">
+            <div class="sensor-card-top">
+              <div class="sensor-icon-box photos">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </div>
+              <span class="sensor-state-pill idle" id="photosBadge">SECURED</span>
+            </div>
+            <div class="sensor-card-body">
+              <div class="sensor-app-identity-row">
+                <div class="sensor-app-badge-slot" id="photosAppBadgeSlot"></div>
+                <div class="sensor-app-text-slot">
+                  <span class="sensor-label">PHOTOS &amp; VIDEOS</span>
+                  <strong class="sensor-app-name" id="photosAppName">Media storage secured</strong>
+                  <span class="sensor-timestamp" id="photosTimestamp">Protected by AppOps</span>
+                </div>
+              </div>
+            </div>
+            <div class="sensor-card-footer">
+              <span class="footer-note" id="photosFooterNote">Gallery access guarded</span>
+              <button class="sensor-quick-btn" id="btnInspectPhotos" data-filter="PHOTOS_VIDEOS">Inspect</button>
+            </div>
+          </div>
+
+          <!-- Background Mobile Data Card -->
+          <div class="sensor-card" id="cardData">
+            <div class="sensor-card-top">
+              <div class="sensor-icon-box data">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </div>
+              <span class="sensor-state-pill sync" id="dataBadge">MONITORING</span>
+            </div>
+            <div class="sensor-card-body">
+              <div class="sensor-app-identity-row">
+                <div class="sensor-app-badge-slot" id="dataAppBadgeSlot"></div>
+                <div class="sensor-app-text-slot">
+                  <span class="sensor-label">BACKGROUND DATA</span>
+                  <strong class="sensor-app-name" id="dataAppName">Network telemetry guarded</strong>
+                  <span class="sensor-timestamp" id="dataTimestamp">No background leaks</span>
+                </div>
+              </div>
+            </div>
+            <div class="sensor-card-footer">
+              <span class="footer-note" id="dataFooterNote">Background sync monitor</span>
+              <button class="sensor-quick-btn" id="btnBlockDataQuick" data-pkg="" data-sensor="BACKGROUND_DATA">Check</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Hardware Telemetry Banner -->
+        <div class="telemetry-bar-card">
+          <div class="telemetry-left">
+            <div class="telemetry-radar-dot"></div>
+            <div>
+              <span class="telemetry-title">SAMSUNG GALAXY S24 HARDWARE LINK</span>
+              <span class="telemetry-meta">USB Bridge • Real-Time Camera &amp; Audio Telemetry Active</span>
+            </div>
+          </div>
+          <button class="telemetry-refresh-btn" id="btnRefreshTelemetry">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M23 4v6h-6M1 20v-6h6"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            <span>Refresh Sensors</span>
+          </button>
+        </div>
+
+        <!-- Live Access Event Stream (Timestamped to exact second) -->
+        <div class="section-title-wrap">
+          <span class="section-title">📋 TODAY'S SENSOR ACCESS LOG · FROM 12:00 AM</span>
+          <button class="clear-events-btn" id="btnClearEvents">Clear Stream</button>
+        </div>
+        <div class="events-list" id="eventsList">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SECTION 2: ALL APPS & PERMISSIONS AUDIT
+           ======================================================== -->
+      <section class="tab-view" id="viewAppsPermissions">
+        <div class="section-hero-header">
+          <div>
+            <h2>ALL APPS &amp; PERMISSIONS ON YOUR PHONE</h2>
+            <p>Every third-party app installed on your Samsung Galaxy S24 with Camera, Microphone, Photos &amp; Videos, and Location controls.</p>
+          </div>
+          <button class="refresh-apps-btn" id="btnRefreshApps">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <span>Scan Device</span>
+          </button>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="apps-search-box">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="appsSearchInput" placeholder="Search apps (e.g. Snapchat, Instagram, Calculator)...">
+          <button class="search-clear-btn" id="btnClearSearch">&times;</button>
+        </div>
+
+        <!-- Filter Chips (Camera, Mic, Photos & Videos, Location, Data) -->
+        <div class="filter-chips-scroll">
+          <button class="filter-chip active" data-filter="ALL">All Apps (<span id="totalAppsCount">0</span>)</button>
+          <button class="filter-chip" data-filter="CAMERA">📸 Camera</button>
+          <button class="filter-chip" data-filter="MICROPHONE">🎙️ Microphone</button>
+          <button class="filter-chip" data-filter="PHOTOS_VIDEOS">🖼️ Photos &amp; Videos</button>
+          <button class="filter-chip" data-filter="LOCATION">📍 Location</button>
+          <button class="filter-chip" data-filter="BLOCKED">🚫 Blocked Apps (<span id="blockedAppsCount">0</span>)</button>
+        </div>
+
+        <!-- Apps List -->
+        <div class="apps-list-grid" id="appsListGrid">
+          <div class="loading-apps-card">
+            <div class="spinner"></div>
+            <p>Scanning installed applications on Galaxy S24...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SECTION 3: SCREEN TIME & APP USAGE
+           ======================================================== -->
+      <section class="tab-view" id="viewScreenTime">
+        <div class="section-hero-header">
+          <div>
+            <h2>SCREEN TIME &amp; APP USAGE TODAY</h2>
+            <p>Live usage tracking for today (12:00 AM – 11:59 PM) from Samsung Galaxy S24 — showing screen time per app and sensor activity.</p>
+          </div>
+          <button class="refresh-apps-btn" id="btnRefreshScreenTime">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <span>Refresh Usage</span>
+          </button>
+        </div>
+
+        <!-- Screen Time Hero Stats -->
+        <div class="screentime-hero-card">
+          <div class="screentime-hero-top">
+            <div class="screentime-hero-time-box">
+              <span class="screentime-label">TOTAL SCREEN TIME · TODAY (12:00 AM – 11:59 PM)</span>
+              <div class="screentime-total-val" id="stTotalTime">--</div>
+              <span class="screentime-meta" id="stActiveAppsCount">Monitoring active applications</span>
+            </div>
+            <div class="screentime-topapp-box">
+              <span class="screentime-topapp-label">MOST USED APP</span>
+              <strong class="screentime-topapp-name" id="stTopAppName">--</strong>
+              <span class="screentime-topapp-time" id="stTopAppTime">--</span>
+            </div>
+          </div>
+          <!-- Category visual breakdown bar -->
+          <div class="screentime-category-bar" id="stCategoryBar">
+            <div class="cat-segment social" style="width: 45%" title="Social & Communication"></div>
+            <div class="cat-segment browser" style="width: 25%" title="Browsers"></div>
+            <div class="cat-segment media" style="width: 15%" title="Entertainment & Media"></div>
+            <div class="cat-segment other" style="width: 15%" title="Utilities & System"></div>
+          </div>
+          <div class="screentime-cat-legend">
+            <span class="legend-item"><span class="dot social"></span> Social</span>
+            <span class="legend-item"><span class="dot browser"></span> Browser</span>
+            <span class="legend-item"><span class="dot media"></span> Media</span>
+            <span class="legend-item"><span class="dot other"></span> Utilities &amp; Games</span>
+          </div>
+        </div>
+
+        <!-- Filter / Subtitle -->
+        <div class="section-title-wrap">
+          <span class="section-title">TODAY'S APP USAGE BREAKDOWN · 12:00 AM – 11:59 PM (TAP ANY APP FOR PERMISSIONS)</span>
+        </div>
+
+        <!-- Screen Time App List -->
+        <div class="screentime-list-grid" id="screenTimeListGrid">
+          <div class="loading-apps-card">
+            <div class="spinner"></div>
+            <p>Calculating live screen time from Galaxy S24...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           PAGE / VIEW: DETAILED APP PERMISSIONS BREAKDOWN
+           ======================================================== -->
+      <section class="tab-view" id="viewAppDetail">
+        <!-- Top Back Bar -->
+        <div class="detail-back-bar">
+          <button class="btn-back-nav" id="btnBackToApps">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Back to All Apps</span>
+          </button>
+          <span class="detail-device-indicator">Samsung Galaxy S24 Audit</span>
+        </div>
+
+        <!-- App Header Hero Card -->
+        <div class="app-detail-hero" id="appDetailHero">
+          <div class="app-detail-header-left">
+            <div class="app-detail-icon-slot" id="detailAppIconSlot">
+              <!-- Brand Icon populated in JS -->
+            </div>
+            <div class="app-detail-header-info">
+              <h2 class="app-detail-title" id="detailAppName">App Name</h2>
+              <span class="app-detail-pkg" id="detailPkgName">com.example.app</span>
+              <div class="app-detail-tags-row">
+                <span class="detail-cat-pill" id="detailCategory">Category</span>
+                <span class="detail-risk-badge" id="detailRiskBadge">Risk 15/100 • SAFE</span>
+                <span class="detail-screentime-pill" id="detailScreenTimePill">⏱️ 0m today</span>
+              </div>
+            </div>
+          </div>
+          <div class="app-detail-header-actions">
+            <button class="detail-action-btn ai" id="btnDetailAskAI">
+              🤖 Ask AI About This App
+            </button>
+            <button class="detail-action-btn block" id="btnDetailBlock">
+              🛡️ Block All Sensors
+            </button>
+          </div>
+        </div>
+
+        <!-- Permission Summary Metrics Pills -->
+        <div class="perm-stats-summary-row">
+          <div class="perm-stat-box granted">
+            <div class="stat-num" id="detailGrantedCount">0</div>
+            <div class="stat-meta">
+              <strong>PERMISSIONS GIVEN</strong>
+              <span>Granted &amp; accessible right now</span>
+            </div>
+          </div>
+          <div class="perm-stat-box denied">
+            <div class="stat-num" id="detailDeniedCount">0</div>
+            <div class="stat-meta">
+              <strong>PERMISSIONS NOT GIVEN</strong>
+              <span>Refused, blocked or not allowed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading state -->
+        <div class="detail-loading-box" id="detailLoadingBox" style="display:none;">
+          <div class="spinner"></div>
+          <p>Auditing live permissions from Galaxy S24 system...</p>
+        </div>
+
+        <!-- Detailed Content Container -->
+        <div class="detail-content-wrap" id="detailContentWrap">
+          <!-- SECTION 1: PERMISSIONS GIVEN (GRANTED) -->
+          <div class="perm-group-section granted-group">
+            <div class="perm-group-header">
+              <div class="perm-group-title-row">
+                <span class="perm-badge-icon granted">✅</span>
+                <div>
+                  <h3 class="perm-group-title">PERMISSIONS GIVEN TO THIS APP (GRANTED)</h3>
+                  <p class="perm-group-subtitle">This app currently has authorization to access these device capabilities and personal data.</p>
+                </div>
+              </div>
+              <span class="perm-group-count-pill granted" id="pillGrantedCount">0 Given</span>
+            </div>
+            <div class="permissions-detail-list" id="grantedPermsList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- SECTION 2: PERMISSIONS NOT GIVEN (DENIED) -->
+          <div class="perm-group-section denied-group">
+            <div class="perm-group-header">
+              <div class="perm-group-title-row">
+                <span class="perm-badge-icon denied">❌</span>
+                <div>
+                  <h3 class="perm-group-title">PERMISSIONS NOT GIVEN TO THIS APP (DENIED / NOT ALLOWED)</h3>
+                  <p class="perm-group-subtitle">These permissions were requested in the app manifest but are denied, revoked, or not granted.</p>
+                </div>
+              </div>
+              <span class="perm-group-count-pill denied" id="pillDeniedCount">0 Denied</span>
+            </div>
+            <div class="permissions-detail-list" id="deniedPermsList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SECTION 4: AI SECURITY COPILOT CHATBOT
+           ======================================================== -->
+      <section class="tab-view" id="viewChatbot">
+        <div class="chatbot-header">
+          <div class="chatbot-avatar">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a2 2 0 0 1 2 2v2h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4V4a2 2 0 0 1 2-2z"/>
+              <circle cx="9" cy="11" r="1.5" fill="currentColor"/>
+              <circle cx="15" cy="11" r="1.5" fill="currentColor"/>
+              <path d="M9 15h6"/>
+            </svg>
+          </div>
+          <div>
+            <h2>AEGIS AI SECURITY COPILOT</h2>
+            <p>Ask anything about your Galaxy S24 permissions, screen time, camera/mic access, and background spying.</p>
+          </div>
+        </div>
+
+        <!-- Quick Question Suggestion Chips -->
+        <div class="chat-suggestions-wrap">
+          <span class="suggestions-label">SUGGESTED QUESTIONS:</span>
+          <div class="suggestions-chips-row">
+            <button class="chat-prompt-chip" data-prompt="What is my screen time today?">⏱️ Screen Time Today</button>
+            <button class="chat-prompt-chip" data-prompt="Which apps have access to my photos and videos?">🖼️ Photos &amp; Videos Apps</button>
+            <button class="chat-prompt-chip" data-prompt="Who accessed my camera recently?">📷 Recent Camera Access</button>
+            <button class="chat-prompt-chip" data-prompt="Why does Snapchat need camera and mic permission?">👻 Is Snapchat Safe?</button>
+            <button class="chat-prompt-chip" data-prompt="Why does Calculator need camera? Is it safe?">⚠️ Calculator Threat Analysis</button>
+            <button class="chat-prompt-chip" data-prompt="Which apps have microphone permission?">🎙️ Mic Permissions</button>
+            <button class="chat-prompt-chip" data-prompt="Block camera for Calculator">🛡️ Block Calculator Camera</button>
+            <button class="chat-prompt-chip" data-prompt="What the project is for?">🛡️ What Project Is For</button>
+          </div>
+        </div>
+
+        <!-- Chat Messages Container -->
+        <div class="chat-messages-container" id="chatMessages">
+          <!-- Initial AI greeting -->
+          <div class="chat-message-bubble assistant">
+            <div class="chat-bubble-avatar">🛡️</div>
+            <div class="chat-bubble-content">
+              <div class="bubble-header">
+                <strong>Aegis AI Copilot</strong>
+                <span class="bubble-time">Live Guardian</span>
+              </div>
+              <div class="bubble-text">
+                <p>Hello! I am your <strong>Aegis Mobile Security Copilot</strong>, connected live to your <strong>Samsung Galaxy S24</strong>.</p>
+                <p>I monitor your device's permissions, background camera/microphone usage, photos/videos access, and screen time in real time.</p>
+                <p><strong>Ask me any security question about your phone:</strong></p>
+                <ul>
+                  <li><em>"What is my screen time today?"</em></li>
+                  <li><em>"What are the apps are accessing my camera from morning?"</em></li>
+                  <li><em>"What the project is for?"</em></li>
+                  <li><em>"Which apps can access my photos and videos?"</em></li>
+                  <li><em>"Is Instagram safe?"</em></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <form class="chat-input-form" id="chatInputForm">
+          <input type="text" id="chatTextInput" placeholder="Ask about permissions, screen time, camera, or type 'Block Calculator'..." autocomplete="off">
+          <button type="submit" class="chat-send-btn" id="btnChatSend" title="Send Question">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </form>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar (4 Distinct Sections) -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="LiveMonitor" id="tabBtnLiveMonitor">
+        <div class="nav-icon-wrap">
+          <span class="live-dot-indicator"></span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <span>Live Monitor</span>
+      </button>
+
+      <button class="nav-item" data-tab="AppsPermissions" id="tabBtnApps">
+        <div class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </div>
+        <span>Apps &amp; Permissions</span>
+      </button>
+
+      <button class="nav-item" data-tab="ScreenTime" id="tabBtnScreenTime">
+        <div class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <span>Screen Time</span>
+      </button>
+
+      <button class="nav-item" data-tab="Chatbot" id="tabBtnChatbot">
+        <div class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <span>AI Security Chat</span>
+      </button>
+    </nav>
+
+    <!-- HIGH-PRIORITY UNUSUAL ANOMALY ALERT MODAL -->
+    <div class="threat-modal-backdrop" id="threatModal">
+      <div class="threat-modal-card">
+        <div class="modal-pulse-glow"></div>
+        <div class="threat-icon-badge">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+
+        <span class="threat-modal-tag" id="modalTag">SECURITY QUERY ALERT</span>
+        <h2 class="threat-modal-title" id="modalAppTitle">Your device detected Camera in an unusual app: Calculator!</h2>
+        <p class="threat-modal-pkg" id="modalPkgName">com.sec.android.app.popupcalculator</p>
+
+        <!-- Query Notice Message Box -->
+        <div class="query-notice-box" id="modalQueryNotice">
+          ⚠️ <strong>Security Query:</strong> Unusual hardware sensor access detected. Do you want to block this permission?
+        </div>
+
+        <!-- Actions -->
+        <div class="threat-modal-actions">
+          <button class="btn-block-action" id="btnBlockThreat">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+            </svg>
+            <span>BLOCK PERMISSION NOW</span>
+          </button>
+          <button class="btn-dismiss-action" id="btnDismissThreat">
+            <span>Dismiss Alert</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast-popup" id="toastPopup">
+      <span class="toast-icon">🛡️</span>
+      <span class="toast-text" id="toastText">Action completed successfully.</span>
+    </div>
+  </div>
+
+  <script src="app.js?v=9"></script>
+</body>
+</html>
